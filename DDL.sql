@@ -4,7 +4,7 @@ select @@hostname;
 -- 스크립트를 1줄씩 실행하는 것이 기본임(ctrl + enter )
 -- 만약 더미네이터를 20개 입력한다!! (블럭설정 ctrl + shift + enter)addresscategory 
 
-use sakila; -- sakila 데이터베이스에 가서 사용할게
+use sakila;-- sakila 데이터베이스에 가서 사용할게
 select * from actor; -- actor 테이블에 모든 값을 가져와~
 
 use world; -- world 데이터베이스에 가서 사용할께
@@ -366,7 +366,201 @@ SELECT * FROM doit_insert_select_from;
 SELECT * FROM doit_insert_select_to;
 
 CREATE TABLE doit_parent(col_1 INT PRIMARY KEY);
-CREATE TABLE doit_child(col_2 INT);
+CREATE TABLE doit_child(col_1 INT);
 
 ALTER TABLE doit_child
-ADD FOREIGN KEY (col_1) REFERENCE doit_parent(col_1);
+ADD FOREIGN KEY (col_1) REFERENCES doit_parent(col_1);
+
+INSERT INTO doit_parent VALUES (1);
+INSERT INTO doit_child VALUES (1);
+
+SELECT * FROM doit_parent;
+SELECT * FROM doit_child; 
+
+DELETE FROM doit_child WHERE col_1 = 1;
+DELETE FROM doit_parent WHERE col_1 = 1;
+
+DROP TABLE doit_child;
+DROP TABLE doit_parent;
+
+CREATE TABLE doit_parent (col_1 INT PRIMARY KEY);
+CREATE TABLE doit_child (col_1 INT);
+ALTER TABLE doit_child ADD FOREIGN KEY (col_1) REFERENCES doit_parent(col_1);
+
+SHOW CREATE TABLE doit_child;
+
+ALTER TABLE doit_child 
+DROP CONSTRAINT doit_child_ibfk_1;
+
+DROP TABLE doit_parent;
+
+SELECT
+	a.customer_id, a.store_id, a.first_name, a.last_name, a.email, a.address_id AS a_address_id,
+	b.address_id AS b_address_id, b.address, b.district, b.city_id, b.postal_code, b.phone, b.location
+FROM customer AS a
+	INNER JOIN address AS b ON a.address_id = b.address_id
+WHERE a.first_name = 'ROSA';
+
+SELECT
+	a.customer_id, a.first_name, a.last_name,
+	b.address_id, b.address, b.district, b.postal_code
+FROM customer AS a
+	INNER join address AS b ON a.address_id = b.address_id AND a.create_date = b.last_update
+WHERE a.first_name = 'ROSA';
+
+SELECT
+	a.customer_id, a.first_name, a.last_name,
+    b.address_id, b.address, b.district, b.postal_code,
+    c.city_id, c.city
+FROM customer AS a
+	INNER JOIN address AS b ON a.address_id = b.address_id
+    INNER JOIN city AS c ON b.city_id = c.city_id
+WHERE a.first_name = 'ROSA';
+
+SELECT
+	a.address, a.address_id AS a_address_id,
+    b.address_id AS b_address_id, b.store_id
+FROM address AS a
+	LEFT OUTER JOIN store AS b ON a.address_id = b.address_id;
+    
+-- SELECT
+-- 	a.address, a.address_id AS a_address_id,
+--     b.address_id AS b_address_id, b.store_id
+-- FROM address AS a
+-- 	LEFT OUTER JOIN store AS b ON a.address_id = b.address_id
+-- WHERE b.address_id IS NULL
+
+SELECT
+	a.address, a.address_id AS a_address_id,
+    b.address_id AS b_address_id, b.store_id
+FROM address AS a
+	RIGHT OUTER JOIN store AS b ON a.address_id = b.address_id;
+
+SELECT
+	a.address_id AS a_address_id, a.store_id,
+    b.address, b.address_id AS b_address_id
+FROM store AS a
+	RIGHT OUTER JOIN address AS b ON a.address_id = b.address_id
+WHERE a.address_id IS NULL;
+
+SELECT
+	a.address_id AS a_address_id, a.store_id,
+    b.address, b.address_id AS b_address_id
+FROM store AS a
+	LEFT OUTER JOIN address AS b ON a.address_id = b.address_id
+    
+UNION
+
+SELECT
+	a.address_id AS a_address_id, a.store_id,
+    b.address, b.address_id AS b_address_id
+FROM store AS a
+	RIGHT OUTER JOIN address AS b ON a.address_id = b.address_id;
+
+SELECT
+	a.address_id AS a_address_id, a.store_id,
+    b.address, b.address_id AS b_address_id
+FROM store AS a
+	LEFT OUTER JOIN address AS b ON a.address_id = b.address_id
+WHERE b.address_id IS NULL
+
+UNION
+
+SELECT
+	a.address_id AS a_address_id, a.store_id,
+    b.address, b.address_id AS b_address_id
+FROM store AS a
+	RIGHT OUTER JOIN address AS b ON a.address_id = b.address_id
+WHERE a.address_id IS NULL;
+
+CREATE TABLE doit_cross1(num INT);
+CREATE TABLE doit_cross2(name VARCHAR(10));
+INSERT INTO doit_cross1 VALUES (1),(2),(3);
+INSERT INTO  doit_cross2 VALUES ('Do'),('It'),('SQL');
+
+SELECT
+	a.num, b.name
+FROM doit_cross1 AS a
+	CROSS JOIN doit_cross2 AS b
+ORDER BY a.num;
+
+SELECT
+	a.num, b.name
+FROM doit_cross1 AS a
+	CROSS JOIN doit_cross2 AS b
+WHERE a.num = 1;
+
+-- SELECT a.customer_id AS a_customer_id, b.customer_id AS b_customer_id
+-- FROM customer AS a
+-- 	INNER JOIN customer AS b ON a.customer_id = b.customer_id
+    
+SELECT
+	a.payment_id, a.amount, b.payment_id, b.amount, b.amount - a.amount AS profit_amount
+FROM payment AS a
+	LEFT OUTER JOIN payment AS b ON a.payment_id = b.payment_id -1;
+    
+SELECT * FROM customer
+WHERE customer_id = (SELECT customer_id FROM customer WHERE first_name ='ROSA');
+
+SELECT * FROM customer
+WHERE first_name IN ('ROSA','ANA');
+
+SELECT * FROM customer
+WHERE customer_id IN (SELECT customer_id FROM customer WHERE first_name IN ('ROSA','ANA'));
+
+SELECT
+	a.film_id, a.title
+FROM film AS a
+	INNER JOIN film_category AS b ON a.film_id = b.film_id
+    INNER JOIN category AS c ON b.category_id = c.category_id
+WHERE c.name = 'Action';
+
+SELECT
+	film_id, title
+FROM film
+WHERE film_id IN(
+	SELECT a.film_id
+    FROM film_category AS a
+		INNER JOIN category AS b ON a.category_id = b.category_id
+	WHERE b.name = 'Action');
+    
+SELECT
+	film_id, title
+FROM film 
+WHERE film_id NOT IN(
+	SELECT a.film_id
+    FROM film_category AS a
+		INNER JOIN category AS b ON a.category_id = b.category_id
+	WHERE b.name = 'Action');
+    
+SELECT * FROM customer
+WHERE customer_id = ANY (SELECT customer_id FROM customer WHERE first_name IN
+('ROSA','ANA'));
+
+
+SELECT * FROM customer
+WHERE customer_id < ANY (SELECT cutomer_id FROM customer WHERE first_name IN ('ROSA','ANA'));
+
+SELECT * FROM customer
+WHERE customer_id > ANY(SELECT cutomer_id FROM customer WHERE first_name IN ('ROSA','ANA'));
+
+SELECT * FROM customer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
